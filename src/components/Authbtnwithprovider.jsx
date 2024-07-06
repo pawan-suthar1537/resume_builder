@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider,
   GithubAuthProvider,
   signInWithRedirect,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../config/firebase.config";
 
@@ -14,7 +15,7 @@ const Authbtnwithprovider = ({ Icon, label, provider }) => {
   const handleclick = async () => {
     switch (provider) {
       case "GoogleAuthProvider":
-        await signInWithRedirect(auth, googleauth)
+        await signInWithPopup(auth, googleauth)
           .then((res) => {
             console.log(res);
           })
@@ -23,7 +24,7 @@ const Authbtnwithprovider = ({ Icon, label, provider }) => {
           });
         break;
       case "GithubAuthProvider":
-        await signInWithRedirect(auth, githubauth)
+        await signInWithPopup(auth, githubauth)
           .then((res) => {
             console.log(res);
           })
