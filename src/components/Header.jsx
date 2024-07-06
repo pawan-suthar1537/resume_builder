@@ -8,6 +8,7 @@ import { HiLogout } from "react-icons/hi";
 import { auth } from "../config/firebase.config";
 import { useQueryClient } from "react-query";
 import { toast } from "react-toastify";
+import { AdminIds } from "../utils/helper";
 
 const Header = () => {
   const [menu, setmenu] = useState(false);
@@ -89,13 +90,15 @@ const Header = () => {
                           {" "}
                           My Account
                         </Link>
-                        <Link
-                          to={"template/create"}
-                          className="text-gray-400 hover:text-black"
-                        >
-                          {" "}
-                          Add New Template{" "}
-                        </Link>
+                        {AdminIds.includes(data.uid) && (
+                          <Link
+                            to={"template/create"}
+                            className="text-gray-400 hover:text-black"
+                          >
+                            {" "}
+                            Add New Template{" "}
+                          </Link>
+                        )}
                         <div
                           onClick={SignoutUser}
                           className="w-full px-2 py-2 border-t border-gray-300 flex items-center justify-between group cursor-pointer"
