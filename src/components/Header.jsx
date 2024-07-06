@@ -2,11 +2,24 @@ import UseUser from "../hooks/UseUser";
 import { Logo } from "../assets";
 import { AnimatePresence, motion } from "framer-motion";
 import { PuffLoader } from "react-spinners";
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { HiLogout } from "react-icons/hi";
+import { auth } from "../config/firebase.config";
+import { useQueryClient } from "react-query";
+import { toast } from "react-toastify";
 
 const Header = () => {
+  const [menu, setmenu] = useState(false);
   const { data, isLoading, isError } = UseUser();
+  const QueryClient = useQueryClient();
+
+  const SignoutUser = async () => {
+    await auth.signOut().then(() => {
+      QueryClient.setQueryData("user", null);
+      toast.success("User signed out successfully");
+    });
+  };
   return (
     <header className="w-full flex items-center justify-between px-4 py-3 lg:px-8 border-b border-gray-300 z-50 gap-12 sticky top-0">
       <img src={Logo} className="w-8 h-auto object-contain" alt="" />
@@ -23,7 +36,7 @@ const Header = () => {
         ) : (
           <React.Fragment>
             {data ? (
-              <motion.div className="relative">
+              <motion.div className="relative" onClick={() => setmenu(!menu)}>
                 {data.photoURL ? (
                   <div className="w-12 h-12 rounded-md relative flex items-center justify-center cursor-pointer">
                     <img
@@ -33,7 +46,7 @@ const Header = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-md relative flex items-center justify-center bg-blue-700 shadow-md">
+                  <div className="w-12 h-212 rounded-md relative flex items-center justify-center bg-blue-700 shadow-md">
                     <p className="text-lg text-white cursor-pointer">
                       {data.email[0]}
                     </p>
@@ -41,12 +54,68 @@ const Header = () => {
                 )}
                 {/* drawer */}
                 <AnimatePresence>
-                  <motion.div className="absolute px-4 py-3 rounded-md bg-white right-0 top-10 flex-col justify-start items-center gap-3 w-64 pt-16"></motion.div>
+                  {menu && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute px-4 py-3 rounded-md bg-white right-0 top-10 flex-col justify-start items-center gap-3 w-64 pt-16"
+                      onMouseLeave={() => setmenu(false)}
+                    >
+                      {data.photoURL ? (
+                        <div className="w-20 h-20 rounded-full relative flex items-center flex-col justify-start cursor-pointer">
+                          <img
+                            src={data.photoURL}
+                            className="w-full h-full object-cover rounded-full"
+                            alt=""
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 rounded-full relative flex items-center justify-center bg-blue-700 shadow-md">
+                          <p className="text-lg text-white cursor-pointer">
+                            {data.email[0]}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-lg text-black cursor-pointer">
+                        {data.displayName}
+                      </p>
+                      {/* menu option */}
+                      <div className="w-full flex gap-8 pt-6 flex-col items-start">
+                        <Link
+                          to={"profile"}
+                          className="text-gray-400 hover:text-black"
+                        >
+                          {" "}
+                          My Account
+                        </Link>
+                        <Link
+                          to={"template/create"}
+                          className="text-gray-400 hover:text-black"
+                        >
+                          {" "}
+                          Add New Template{" "}
+                        </Link>
+                        <div
+                          onClick={SignoutUser}
+                          className="w-full px-2 py-2 border-t border-gray-300 flex items-center justify-between group cursor-pointer"
+                        >
+                          <p className="group-hover:text-black">Sign Out</p>
+                          <HiLogout className="group-hover:text-black" />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </motion.div>
             ) : (
               <Link to={"/auth"}>
-                <motion.button>Login</motion.button>
+                <motion.button
+                  className="px-4 py-2 rounded-md border-gray-300 bg-gray-200 hover:shadow-md active:scale-95 duration-150"
+                  type="button"
+                >
+                  Login
+                </motion.button>
               </Link>
             )}
           </React.Fragment>

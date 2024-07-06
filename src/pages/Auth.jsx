@@ -11,7 +11,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && data) {
+    if (data) {
       navigate("/", { replace: true });
     }
   }, [isLoading, data, navigate]);
