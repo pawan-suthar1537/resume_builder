@@ -92,7 +92,7 @@ const Header = () => {
                         </Link>
                         {AdminIds.includes(data.uid) && (
                           <Link
-                            to={"template/create"}
+                            to={"/template/create"}
                             className="text-gray-400 hover:text-black"
                           >
                             {" "}
