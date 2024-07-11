@@ -2,8 +2,14 @@ import React, { useState } from "react";
 import { FaUpload } from "react-icons/fa";
 import { PuffLoader } from "react-spinners";
 import { toast } from "react-toastify";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { storage } from "../config/firebase.config";
+import { FaTrash } from "react-icons/fa6";
 
 const CreateTemplate = () => {
   const [formdata, setformdata] = useState({
@@ -57,6 +63,23 @@ const CreateTemplate = () => {
       toast.info("Please select a valid image file");
       setimageasset((prevRec) => ({ ...prevRec, isimageloading: false }));
     }
+  };
+
+  const handleDeleteImage = () => {
+    const deletedref = ref(storage, imageasset.image);
+    deleteObject(deletedref)
+      .then(() => {
+        setimageasset((prevRec) => ({
+          ...prevRec,
+          progress: 0,
+          image: null,
+        }));
+        toast.success("Image Deleted Successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting image:", error);
+        toast.error("Failed to delete image");
+      });
   };
 
   const isallowed = (file) => {
@@ -125,6 +148,13 @@ const CreateTemplate = () => {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
+                    {/* delete image action */}
+                    <div
+                      className="absolute top-3 right-3 w-8 h-8 rounded-md items-center flex justify-center bg-red-500 cursor-pointer"
+                      onClick={handleDeleteImage}
+                    >
+                      <FaTrash className="text-sm text-white" />
+                    </div>
                   </div>
                 </React.Fragment>
               )}
