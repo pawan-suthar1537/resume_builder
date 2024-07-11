@@ -12,6 +12,7 @@ import { AdminIds } from "../utils/helper";
 
 const Header = () => {
   const [menu, setmenu] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const { data, isLoading, isError } = UseUser();
   const QueryClient = useQueryClient();
 
