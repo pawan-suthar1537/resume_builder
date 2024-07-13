@@ -11,7 +11,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../config/firebase.config";
 import { FaTrash } from "react-icons/fa6";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import useFetchTemplates from "../hooks/UseFetchTemplate";
 
 const CreateTemplate = () => {
@@ -109,6 +109,26 @@ const CreateTemplate = () => {
     return allowed.includes(file.type);
   };
 
+  const handleDeleteTemplate = async (template) => {
+    const deletedref = ref(storage, template?.img); // Ensure this is the correct path to the image
+    await deleteObject(deletedref)
+      .then(async () => {
+        await deleteDoc(doc(db, "templates", template?._id))
+          .then(() => {
+            toast.success("Template Deleted Successfully");
+            templateRefetch();
+          })
+          .catch((error) => {
+            console.error("Error deleting template:", error);
+            toast.error("Failed to delete template");
+          });
+      })
+      .catch((error) => {
+        console.error("Error deleting image:", error);
+        toast.error("Failed to delete image");
+      });
+  };
+
   const pushtoCloud = async () => {
     const timestamp = serverTimestamp();
     const id = `${Date.now()}`;
@@ -123,16 +143,18 @@ const CreateTemplate = () => {
           : "Template1",
       timestamp: timestamp,
     };
-    await setDoc(doc(db, "templates", id), _doc).then(() => {
-      setformdata((prevRec) => ({ ...prevRec, title: "", img: null }));
-      setimageasset((prevRec) => ({ ...prevRec, image: null }));
-      settags([]);
-      templateRefetch();
-      toast.success("Template Added Successfully");
-    }).catch((error) => {
-      console.error("Error adding document: ", error);
-      toast.error("Failed to add template");
-    })
+    await setDoc(doc(db, "templates", id), _doc)
+      .then(() => {
+        setformdata((prevRec) => ({ ...prevRec, title: "", img: null }));
+        setimageasset((prevRec) => ({ ...prevRec, image: null }));
+        settags([]);
+        templateRefetch();
+        toast.success("Template Added Successfully");
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+        toast.error("Failed to add template");
+      });
   };
   return (
     <div className="w-full px-4 lg:px-10 2xl:px-32 py-4 grid grid-cols-1 lg:grid-cols-12 ">
@@ -238,7 +260,49 @@ const CreateTemplate = () => {
       </div>
 
       {/* right container */}
-      <div className="col-span-12 lg:col-span-8 2xl:col-span-9">2</div>
+      <div className="col-span-12 lg:col-span-8 2xl:col-span-9 px-2 w-full flex-1 py-4 ">
+        {templateisLoading ? (
+          <React.Fragment>
+            <div className="w-full f-full flex items-center justify-center">
+              <PuffLoader color="#498FCD" size={40} />
+            </div>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            {templates && templates.length > 0 ? (
+              <React.Fragment>
+                <div className="w-full h-full grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2">
+                  {templates.map((temp) => (
+                    <div
+                      key={temp._id}
+                      className="w-full h-[400px] rounded-md overflow-hidden relative"
+                    >
+                      <img
+                        src={temp?.img}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                      <div
+                        className="absolute top-3 right-3 w-8 h-8 rounded-md items-center flex justify-center bg-red-500 cursor-pointer"
+                        onClick={() => handleDeleteTemplate(temp)}
+                      >
+                        <FaTrash className="text-sm text-white" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <div className="w-full f-full flex flex-col gap-6 items-center justify-center">
+                  <PuffLoader color="#498FCD" size={40} />
+                  <p>no data</p>
+                </div>
+              </React.Fragment>
+            )}
+          </React.Fragment>
+        )}
+      </div>
     </div>
   );
 };
