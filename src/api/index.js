@@ -1,4 +1,11 @@
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+} from "firebase/firestore";
 import { auth, db } from "../config/firebase.config";
 
 export const getuserdetails = async () => {
@@ -27,5 +34,22 @@ export const getuserdetails = async () => {
         unsubscribeAuth();
       }
     });
+  });
+};
+
+export const getTemplates = async () => {
+  return new Promise((res, rej) => {
+    const tempquery = query(
+      collection(db, "templates"),
+      orderBy("timestamp", "asc")
+    );
+
+    const unsubcribe = onSnapshot(tempquery, (snapshot) => {
+      const templates = snapshot.docs.map((doc) => doc.data());
+      res(templates);
+    });
+    return () => {
+      unsubcribe();
+    };
   });
 };

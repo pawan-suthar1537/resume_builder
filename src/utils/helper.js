@@ -1,1 +1,28 @@
 export const AdminIds = ["116197838995173106991"];
+
+export const initialTags = [
+  "fullstack",
+  "react",
+  "nextjs",
+  "node",
+  "express",
+  "mongodb",
+  "mysql",
+  "firebase",
+  "python",
+  "django",
+  "flask",
+  "javascript",
+  "typescript",
+  "java",
+  "c++",
+  "c",
+  "c#",
+  "html",
+  "css",
+  "bootstrap",
+  "tailwindcss",
+  "sass",
+  "materialui",
+  "tailwindui",
+];

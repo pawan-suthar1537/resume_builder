@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaUpload } from "react-icons/fa";
+import { initialTags } from "../utils/helper";
 import { PuffLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import {
@@ -8,14 +9,24 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { storage } from "../config/firebase.config";
+import { db, storage } from "../config/firebase.config";
 import { FaTrash } from "react-icons/fa6";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import useFetchTemplates from "../hooks/UseFetchTemplate";
 
 const CreateTemplate = () => {
   const [formdata, setformdata] = useState({
     title: "",
     img: null,
   });
+
+  const [tags, settags] = useState([]);
+  const {
+    data: templates,
+    isError: templateisError,
+    isLoading: templateisLoading,
+    refetch: templateRefetch,
+  } = useFetchTemplates();
 
   const [imageasset, setimageasset] = useState({
     isimageloading: false,
@@ -65,6 +76,17 @@ const CreateTemplate = () => {
     }
   };
 
+  const handleselectedtags = (tag) => {
+    if (tags.includes(tag)) {
+      if (tags.includes(tag)) {
+        const newtags = tags.filter((t) => t !== tag);
+        settags(newtags);
+      }
+    } else {
+      settags([...tags, tag]);
+    }
+  };
+
   const handleDeleteImage = () => {
     const deletedref = ref(storage, imageasset.image);
     deleteObject(deletedref)
@@ -86,6 +108,32 @@ const CreateTemplate = () => {
     const allowed = ["image/png", "image/jpeg", "image/jpg"];
     return allowed.includes(file.type);
   };
+
+  const pushtoCloud = async () => {
+    const timestamp = serverTimestamp();
+    const id = `${Date.now()}`;
+    const _doc = {
+      _id: id,
+      title: formdata.title,
+      img: imageasset.image,
+      tags: tags,
+      name:
+        templates && templates.length > 0
+          ? `template${templates.length + 1}`
+          : "Template1",
+      timestamp: timestamp,
+    };
+    await setDoc(doc(db, "templates", id), _doc).then(() => {
+      setformdata((prevRec) => ({ ...prevRec, title: "", img: null }));
+      setimageasset((prevRec) => ({ ...prevRec, image: null }));
+      settags([]);
+      templateRefetch();
+      toast.success("Template Added Successfully");
+    }).catch((error) => {
+      console.error("Error adding document: ", error);
+      toast.error("Failed to add template");
+    })
+  };
   return (
     <div className="w-full px-4 lg:px-10 2xl:px-32 py-4 grid grid-cols-1 lg:grid-cols-12 ">
       {/* left container */}
@@ -98,7 +146,11 @@ const CreateTemplate = () => {
           <p className="text-base text-gray-500 uppercase font-semibold">
             TEMPID :{" "}
           </p>
-          <p className="text-sm text-gray-800  font-bold capitalize">one</p>
+          <p className="text-sm text-gray-800  font-bold capitalize">
+            {templates && templates.length > 0
+              ? `template${templates.length + 1}`
+              : "Template1"}
+          </p>
         </div>
         {/* template title */}
         <input
@@ -108,7 +160,7 @@ const CreateTemplate = () => {
           placeholder="Template Title"
           value={formdata.title}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 rounded-md bg-transparent border border-gray-300 text-lg text-gray-800 focus: text-gray-950 focus:shadow-md outline-none"
+          className="w-full px-4 py-3 rounded-md bg-transparent border border-gray-300 text-lg text-gray-800  focus:shadow-md outline-none"
         />
         {/* file uploader */}
         <div className="w-full bg-gray-100 backdrop-blur-md h-[420px] lg:h-[320px] 2xl:h-[340px] rounded-md border-2 border-dotted border-gray-300 cursor-pointer flex items-center justify-center">
@@ -161,6 +213,28 @@ const CreateTemplate = () => {
             </React.Fragment>
           )}
         </div>
+        {/*  tags section */}
+        <div className="w-full flex items-center flex-wrap gap-2">
+          {initialTags.map((tag, i) => (
+            <div
+              key={i}
+              className={`border border-gray-200 px-2 py-1 rounded-md cursor-pointer ${
+                tags.includes(tag) ? "bg-blue-500 text-white" : ""
+              }`}
+              onClick={() => handleselectedtags(tag)}
+            >
+              <p className="text-xs">{tag}</p>
+            </div>
+          ))}
+        </div>
+        {/* button */}
+        <button
+          type="button"
+          className="w-full bg-blue-700 text-white rounded-md py-3"
+          onClick={pushtoCloud}
+        >
+          Save
+        </button>
       </div>
 
       {/* right container */}
