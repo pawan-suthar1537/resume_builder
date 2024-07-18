@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaUpload } from "react-icons/fa";
-import { initialTags } from "../utils/helper";
+import { AdminIds, initialTags } from "../utils/helper";
 import { PuffLoader } from "react-spinners";
 import { toast } from "react-toastify";
+import UseUser from "../hooks/UseUser";
 import {
   deleteObject,
   getDownloadURL,
@@ -13,6 +14,7 @@ import { db, storage } from "../config/firebase.config";
 import { FaTrash } from "react-icons/fa6";
 import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import useFetchTemplates from "../hooks/UseFetchTemplate";
+import { useNavigate } from "react-router-dom";
 
 const CreateTemplate = () => {
   const [formdata, setformdata] = useState({
@@ -129,6 +131,8 @@ const CreateTemplate = () => {
       });
   };
 
+  const navigate = useNavigate();
+
   const pushtoCloud = async () => {
     const timestamp = serverTimestamp();
     const id = `${Date.now()}`;
@@ -156,6 +160,14 @@ const CreateTemplate = () => {
         toast.error("Failed to add template");
       });
   };
+
+  const { data: user, isLoading } = UseUser();
+
+  useEffect(() => {
+    if (!isLoading && !AdminIds.includes(user?.uid)) {
+      navigate("/", { replace: true });
+    }
+  }, [user, isLoading]);
   return (
     <div className="w-full px-4 lg:px-10 2xl:px-32 py-4 grid grid-cols-1 lg:grid-cols-12 ">
       {/* left container */}
@@ -294,9 +306,9 @@ const CreateTemplate = () => {
               </React.Fragment>
             ) : (
               <React.Fragment>
-                <div className="w-full f-full flex flex-col gap-6 items-center justify-center">
+                <div className="w-full h-full flex flex-col gap-6 items-center justify-center">
                   <PuffLoader color="#498FCD" size={40} />
-                  <p>no data</p>
+                  <p className="text-center">No data</p>
                 </div>
               </React.Fragment>
             )}

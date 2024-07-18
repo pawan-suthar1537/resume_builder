@@ -9,8 +9,10 @@ import { auth } from "../config/firebase.config";
 import { useQueryClient } from "react-query";
 import { toast } from "react-toastify";
 import { AdminIds } from "../utils/helper";
+import useFilters from "../hooks/useFilters";
 
 const Header = () => {
+  const { data: filterData } = useFilters();
   const [menu, setmenu] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const { data, isLoading, isError } = UseUser();
@@ -22,15 +24,36 @@ const Header = () => {
       toast.success("User signed out successfully");
     });
   };
+
+  const handleserchterm = (e) => {
+    const prevstate = QueryClient.getQueryData("globalfilter");
+    const updatedstate = { ...prevstate, serchitem: e.target.value };
+    QueryClient.setQueryData("globalfilter", updatedstate);
+  };
+
+  const clearfilter = () => {
+    const prevstate = QueryClient.getQueryData("globalfilter");
+    const updatedstate = { ...prevstate, serchitem: "" };
+    QueryClient.setQueryData("globalfilter", updatedstate);
+  };
   return (
     <header className="w-full flex items-center justify-between px-4 py-3 lg:px-8 border-b border-gray-300 z-50 gap-12 sticky top-0">
       <img src={Logo} className="w-8 h-auto object-contain" alt="" />
       <div className="flex-1 border-gray-300 px-4 py-1 rounded-md items-center justify-between bg-gray-200">
         <input
+          onChange={handleserchterm}
           type="text"
+          value={filterData?.serchitem}
           placeholder="search here..."
           className="flex-1 h-10 bg-transparent text-base font-semibold outline-none border-none"
         />
+        <AnimatePresence>
+          {filterData?.serchitem.length > 0 && (
+            <motion.div onClick={clearfilter} className="w-4 h-4 flex items-center justify-center  bg-gray-300 rounded-md cursor-pointer active:scale-95 duration-150">
+              <p className="text-2xl text-black">x</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       <AnimatePresence>
         {isLoading ? (
